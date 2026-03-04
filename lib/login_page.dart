@@ -62,9 +62,25 @@ class _LoginPageState extends State<LoginPage> {
           SnackBar(content: Text(error), backgroundColor: Colors.red),
         );
       } else {
-        // ✅ Принудительно переходим на главный экран после успешного входа
         Navigator.pushReplacementNamed(context, '/home');
       }
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    final auth = Provider.of<AuthService>(context, listen: false);
+    String? error = await auth.loginWithGoogle();
+    if (error == 'CANCELLED') {
+      // Пользователь отменил вход – ничего не делаем
+      return;
+    }
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error), backgroundColor: Colors.red),
+      );
+    } else {
+      // Успешный вход – переходим на главную
+      Navigator.pushReplacementNamed(context, '/home');
     }
   }
 
@@ -90,25 +106,7 @@ class _LoginPageState extends State<LoginPage> {
                   Container(
                     width: 120,
                     height: 120,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.school, size: 60, color: Colors.blue),
-                      ),
-                    ),
+                    child: Image.asset('assets/images/logo.png'),
                   ),
                   const SizedBox(height: 30),
                   const Text(
@@ -173,6 +171,54 @@ class _LoginPageState extends State<LoginPage> {
                         elevation: 5,
                       ),
                       child: const Text('Войти', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Row(
+                    children: [
+                      Expanded(child: Divider(color: Colors.white30)),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        child: Text('или', style: TextStyle(color: Colors.white70)),
+                      ),
+                      Expanded(child: Divider(color: Colors.white30)),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 55,
+                    child: OutlinedButton(
+                      onPressed: auth.isLoading ? null : _signInWithGoogle,
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        side: const BorderSide(color: Colors.grey),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.only(right: 12),
+                            child: const Text(
+                              'G',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ),
+                          const Text(
+                            'Войти через Google',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),

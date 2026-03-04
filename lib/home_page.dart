@@ -11,14 +11,28 @@ class HomePage extends StatelessWidget {
     Navigator.pushReplacementNamed(context, '/login');
   }
 
+  Future<void> _uploadPhoto(BuildContext context) async {
+    Navigator.pushNamed(context, '/photo-upload');
+  }
+
   String _getFullName(ParseUser? user) {
     if (user == null) return 'Без имени';
+
     String surname = user.get('surname') ?? '';
     String firstname = user.get('firstname') ?? '';
     String patronymic = user.get('patronymic') ?? '';
-    // Собираем ФИО, пропуская пустые части
     List<String> parts = [surname, firstname, patronymic].where((s) => s.isNotEmpty).toList();
-    return parts.isNotEmpty ? parts.join(' ') : 'Без имени';
+    if (parts.isNotEmpty) return parts.join(' ');
+
+    final username = user.get('username');
+    if (username != null && username.isNotEmpty) {
+      if (username.contains('@')) {
+        return username.split('@')[0];
+      }
+      return username;
+    }
+
+    return 'Пользователь';
   }
 
   @override
@@ -100,6 +114,13 @@ class HomePage extends StatelessWidget {
                   subtitle: Text(
                       '${user!.createdAt!.day}.${user.createdAt!.month}.${user.createdAt!.year}'),
                 ),
+              ),
+            const SizedBox(height: 20),
+            if (photoUrl == null)
+              ElevatedButton.icon(
+                onPressed: () => _uploadPhoto(context),
+                icon: const Icon(Icons.camera_alt),
+                label: const Text('Загрузить фото профиля'),
               ),
           ],
         ),
