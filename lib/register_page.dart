@@ -9,7 +9,9 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  final _surnameController = TextEditingController();
+  final _firstnameController = TextEditingController();
+  final _patronymicController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -62,7 +64,9 @@ class _RegisterPageState extends State<RegisterPage> {
       String? error = await auth.registerWithEmail(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
-        name: _nameController.text.trim(),
+        surname: _surnameController.text.trim(),
+        firstname: _firstnameController.text.trim(),
+        patronymic: _patronymicController.text.trim(),
         phone: _phoneController.text.trim(),
       );
       if (error != null) {
@@ -70,7 +74,6 @@ class _RegisterPageState extends State<RegisterPage> {
           SnackBar(content: Text(error), backgroundColor: Colors.red),
         );
       } else {
-        // Переход на экран загрузки фото
         Navigator.pushReplacementNamed(context, '/photo-upload');
       }
     } else if (!_agreeToTerms) {
@@ -109,12 +112,31 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: Column(
                       children: [
                         _buildTextField(
-                          controller: _nameController,
-                          hintText: 'ФИО',
+                          controller: _surnameController,
+                          hintText: 'Фамилия',
                           icon: Icons.person,
                           validator: (value) {
-                            if (value == null || value.isEmpty) return 'Введите ФИО';
-                            if (value.length < 3) return 'Слишком короткое имя';
+                            if (value == null || value.isEmpty) return 'Введите фамилию';
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          controller: _firstnameController,
+                          hintText: 'Имя',
+                          icon: Icons.person,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) return 'Введите имя';
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          controller: _patronymicController,
+                          hintText: 'Отчество',
+                          icon: Icons.person,
+                          validator: (value) {
+                            // Отчество может быть необязательным, поэтому проверка не строгая
                             return null;
                           },
                         ),

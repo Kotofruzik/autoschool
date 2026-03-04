@@ -11,6 +11,16 @@ class HomePage extends StatelessWidget {
     Navigator.pushReplacementNamed(context, '/login');
   }
 
+  String _getFullName(ParseUser? user) {
+    if (user == null) return 'Без имени';
+    String surname = user.get('surname') ?? '';
+    String firstname = user.get('firstname') ?? '';
+    String patronymic = user.get('patronymic') ?? '';
+    // Собираем ФИО, пропуская пустые части
+    List<String> parts = [surname, firstname, patronymic].where((s) => s.isNotEmpty).toList();
+    return parts.isNotEmpty ? parts.join(' ') : 'Без имени';
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthService>(context);
@@ -33,7 +43,6 @@ class HomePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
-            // Аватар с кешированием и placeholder'ом
             Center(
               child: Container(
                 width: 120,
@@ -65,7 +74,7 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              user?.get('name') ?? 'Без имени',
+              _getFullName(user),
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),

@@ -30,23 +30,26 @@ class AuthService extends ChangeNotifier {
     return await ParseUser.currentUser() as ParseUser?;
   }
 
-  // Регистрация (без фото)
   Future<String?> registerWithEmail({
     required String email,
     required String password,
-    required String name,
+    required String surname,
+    required String firstname,
+    required String patronymic,
     required String phone,
   }) async {
     _setLoading(true);
     try {
       var user = ParseUser(email, password, email);
-      user.set('name', name);
+      user.set('surname', surname);
+      user.set('firstname', firstname);
+      user.set('patronymic', patronymic);
       user.set('phone', phone);
 
       var response = await user.signUp();
       if (response.success) {
         _currentUser = response.result;
-        notifyListeners(); // <-- обязательно уведомляем
+        notifyListeners();
         return null;
       } else {
         return response.error!.message;
