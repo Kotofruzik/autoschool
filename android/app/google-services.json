@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "444860373626",
+    "project_id": "autoschool-btgp-8fcc7",
+    "storage_bucket": "autoschool-btgp-8fcc7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:444860373626:android:dbc4fa5413462c35db39c3",
+        "android_client_info": {
+          "package_name": "com.example.autoschool_btgp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "444860373626-khp076sudvp9lta4nctmgjbbf8onqtri.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyABqiwa3FbykC7uzcHFqHpVTlMMD7d4OrU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "444860373626-khp076sudvp9lta4nctmgjbbf8onqtri.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

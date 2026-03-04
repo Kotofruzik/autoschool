@@ -1,0 +1,30 @@
+name: autoschool_btgp
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  parse_server_sdk_flutter: ^10.7.0
+  image_picker: ^1.1.2
+  provider: ^6.1.5
+  http: ^1.6.0
+  minio: ^3.5.8
+  cached_network_image: ^3.3.0
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
