@@ -136,7 +136,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           hintText: 'Отчество',
                           icon: Icons.person,
                           validator: (value) {
-                            // Отчество может быть необязательным, поэтому проверка не строгая
                             return null;
                           },
                         ),

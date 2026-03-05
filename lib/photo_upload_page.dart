@@ -32,13 +32,12 @@ class _PhotoUploadPageState extends State<PhotoUploadPage> {
       );
       setState(() => _isUploading = false);
     } else {
-      // Успех – переход на главный экран
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/');
     }
   }
 
   void _skip() {
-    Navigator.pushReplacementNamed(context, '/home');
+    Navigator.pushReplacementNamed(context, '/');
   }
 
   @override

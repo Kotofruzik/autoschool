@@ -4,17 +4,18 @@ import 'package:provider/provider.dart';
 import 'package:autoschool_btgp/login_page.dart';
 import 'package:autoschool_btgp/register_page.dart';
 import 'package:autoschool_btgp/photo_upload_page.dart';
-import 'package:autoschool_btgp/home_page.dart';
 import 'package:autoschool_btgp/auth_service.dart';
+
+import 'package:autoschool_btgp/student_home_page.dart';
+import 'package:autoschool_btgp/instructor_home_page.dart';
+import 'package:autoschool_btgp/admin_home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // --- КЛЮЧИ Back4App (ваши) ---
   const keyApplicationId = 'qCxbZic6eqme0pvScG5jLoCxDUxztB9FGuiXhEiy';
   const keyClientKey = '50yEotCNReUkwSd7nhVmhYnoZspmLcbizp1GJC3v';
   const keyServerUrl = 'https://parseapi.back4app.com';
-  // ------------------------------
 
   await Parse().initialize(
     keyApplicationId,
@@ -44,7 +45,6 @@ class MyApp extends StatelessWidget {
           '/login': (context) => LoginPage(),
           '/register': (context) => RegisterPage(),
           '/photo-upload': (context) => PhotoUploadPage(),
-          '/home': (context) => HomePage(),
         },
       ),
     );
@@ -56,12 +56,18 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthService>(context);
 
-    // Синхронная проверка – если пользователь уже залогинен, сразу на HomePage
-    if (auth.currentUser != null && auth.currentUser!.sessionToken != null) {
-      return HomePage();
+    if(auth.currentUser != null && auth.currentUser!.sessionToken != null) {
+      final role = auth.currentUser!.get('role') ?? 'student';
+      switch (role) {
+        case 'admin':
+          return AdminHomePage();
+        case 'instructor':
+          return InstructorHomePage();
+        case 'student':
+        default:
+          return StudentHomePage();
+      }
     }
-
-    // Иначе страница входа
     return LoginPage();
   }
 }

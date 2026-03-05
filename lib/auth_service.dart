@@ -1,7 +1,8 @@
+import 'dart:async'; // для Timer
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:minio/io.dart';
-import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
+import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:minio/minio.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -9,6 +10,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 class AuthService extends ChangeNotifier {
   ParseUser? _currentUser;
   bool _isLoading = false;
+  Timer? _pollingTimer; // таймер для периодического опроса
 
   ParseUser? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
@@ -19,11 +21,15 @@ class AuthService extends ChangeNotifier {
 
   void setCurrentUser(ParseUser user) {
     _currentUser = user;
+    _startPolling(); // запускаем опрос при установке пользователя
     notifyListeners();
   }
 
   Future<void> _loadCurrentUser() async {
     _currentUser = await ParseUser.currentUser() as ParseUser?;
+    if (_currentUser != null) {
+      _startPolling(); // запускаем опрос, если пользователь уже был
+    }
     notifyListeners();
   }
 
@@ -31,7 +37,42 @@ class AuthService extends ChangeNotifier {
     return await ParseUser.currentUser() as ParseUser?;
   }
 
-  // Регистрация (без фото)
+  // ---------- Polling ----------
+  void _startPolling() {
+    _stopPolling();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
+      await _refreshCurrentUser();
+    });
+  }
+
+  void _stopPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
+  }
+
+  Future<void> _refreshCurrentUser() async {
+    if (_currentUser == null) return;
+    try {
+      final query = QueryBuilder<ParseUser>(ParseUser.forQuery())
+        ..whereEqualTo('objectId', _currentUser!.objectId);
+      final response = await query.query();
+      if (response.success && response.results != null && response.results!.isNotEmpty) {
+        final updatedUser = response.results!.first as ParseUser;
+        // Если роль изменилась – обновляем только роль у текущего пользователя
+        if (updatedUser.get('role') != _currentUser!.get('role')) {
+          _currentUser!.set('role', updatedUser.get('role'));
+          // Также можно обновить другие поля, если нужно (например, email, name)
+          notifyListeners();
+          print('🔄 Роль обновлена через polling: ${updatedUser.get('role')}');
+        }
+      }
+    } catch (e) {
+      print('❌ Ошибка при опросе: $e');
+    }
+  }
+  // -----------------------------
+
+  // Регистрация
   Future<String?> registerWithEmail({
     required String email,
     required String password,
@@ -47,10 +88,12 @@ class AuthService extends ChangeNotifier {
       user.set('firstname', firstname);
       user.set('patronymic', patronymic);
       user.set('phone', phone);
+      user.set('role', 'student'); // роль по умолчанию
 
       var response = await user.signUp();
       if (response.success) {
         _currentUser = response.result;
+        _startPolling(); // запускаем опрос после регистрации
         notifyListeners();
         return null;
       } else {
@@ -71,6 +114,7 @@ class AuthService extends ChangeNotifier {
       var response = await user.login();
       if (response.success) {
         _currentUser = response.result;
+        _startPolling(); // запускаем опрос после входа
         notifyListeners();
         return null;
       } else {
@@ -83,17 +127,16 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  // Вход через Google
   Future<String?> loginWithGoogle() async {
     _setLoading(true);
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn();
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-      if (googleUser == null) {
-        // пользователь отменил вход – возвращаем специальное значение
-        return 'CANCELLED';
-      }
+      if (googleUser == null) return 'CANCELLED';
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+      await googleUser.authentication;
 
       final response = await ParseUser.loginWith(
         'google',
@@ -109,13 +152,11 @@ class AuthService extends ChangeNotifier {
         final currentUser = _currentUser!;
         bool needsUpdate = false;
 
-        // Сохраняем email, если его нет
         if (currentUser.get('email') == null && googleUser.email != null) {
           currentUser.set('email', googleUser.email);
           needsUpdate = true;
         }
 
-        // Сохраняем имя из Google, если поля пусты
         if (currentUser.get('surname') == null && currentUser.get('firstname') == null) {
           final displayName = googleUser.displayName ?? '';
           final parts = displayName.trim().split(RegExp(r'\s+'));
@@ -130,9 +171,13 @@ class AuthService extends ChangeNotifier {
           }
         }
 
-        // Сохраняем фото из Google, если у пользователя ещё нет фото
         if (currentUser.get('photo') == null && googleUser.photoUrl != null) {
           currentUser.set('photo', googleUser.photoUrl);
+          needsUpdate = true;
+        }
+
+        if (currentUser.get('role') == null) {
+          currentUser.set('role', 'student');
           needsUpdate = true;
         }
 
@@ -140,10 +185,11 @@ class AuthService extends ChangeNotifier {
           await currentUser.save();
         }
 
+        _startPolling(); // запускаем опрос после входа через Google
         notifyListeners();
-        return null; // успех
+        return null;
       } else {
-        return response.error!.message; // ошибка
+        return response.error!.message;
       }
     } catch (e) {
       print('❌ Ошибка входа через Google: $e');
@@ -160,13 +206,11 @@ class AuthService extends ChangeNotifier {
       final file = File(image.path);
       final userId = _currentUser!.objectId!;
 
-      // --- НАСТРОЙКИ YANDEX CLOUD (ЗАМЕНИТЕ НА СВОИ) ---
       const accessKey = 'YCAJEyTjVJ5hPHjDHwCdRFvqu';
       const secretKey = 'YCPsjstQHgXYSe0ZwRRl-fKFUCSnKMAj5WtyGJ4W';
       const bucket = 'autoschoolbtgp';
       const region = 'ru-central1';
       const endpoint = 'storage.yandexcloud.net';
-      // ---------------------------------------------
 
       final minio = Minio(
         endPoint: endpoint,
@@ -201,10 +245,10 @@ class AuthService extends ChangeNotifier {
 
   // Выход
   Future<void> signOut() async {
+    _stopPolling(); // останавливаем опрос перед выходом
     if (_currentUser != null) {
       await _currentUser!.logout();
       _currentUser = null;
-      // Выходим из Google Sign-In, чтобы при следующем входе можно было выбрать аккаунт
       final GoogleSignIn googleSignIn = GoogleSignIn();
       if (await googleSignIn.isSignedIn()) {
         await googleSignIn.signOut();

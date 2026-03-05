@@ -62,7 +62,7 @@ class _LoginPageState extends State<LoginPage> {
           SnackBar(content: Text(error), backgroundColor: Colors.red),
         );
       } else {
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacementNamed(context, '/');
       }
     }
   }
@@ -71,7 +71,6 @@ class _LoginPageState extends State<LoginPage> {
     final auth = Provider.of<AuthService>(context, listen: false);
     String? error = await auth.loginWithGoogle();
     if (error == 'CANCELLED') {
-      // Пользователь отменил вход – ничего не делаем
       return;
     }
     if (error != null) {
@@ -79,8 +78,7 @@ class _LoginPageState extends State<LoginPage> {
         SnackBar(content: Text(error), backgroundColor: Colors.red),
       );
     } else {
-      // Успешный вход – переходим на главную
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/');
     }
   }
 
