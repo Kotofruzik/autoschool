@@ -228,7 +228,7 @@ class _LoginPageState extends State<LoginPage> {
                         onTap: () => Navigator.pushNamed(context, '/register'),
                         child: const Text(
                           'Зарегистрироваться',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold,),
                         ),
                       ),
                     ],

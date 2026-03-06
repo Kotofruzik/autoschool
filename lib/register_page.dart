@@ -244,7 +244,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         onTap: () => Navigator.pop(context),
                         child: const Text(
                           'Войти',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold,),
                         ),
                       ),
                     ],
