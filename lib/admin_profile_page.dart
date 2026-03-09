@@ -1,3 +1,4 @@
+import 'package:autoschool_btgp/edit_profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -42,9 +43,7 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
   }
 
   void _editProfile() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Редактирование профиля (скоро)')),
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (context) => EditProfilePage()));
   }
 
   String _getFullName() {

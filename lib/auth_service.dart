@@ -2,7 +2,7 @@ import 'dart:async'; // для Timer
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:minio/io.dart';
-import 'package:parse_server_sdk/parse_server_sdk.dart';
+import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:minio/minio.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -37,7 +37,6 @@ class AuthService extends ChangeNotifier {
     return await ParseUser.currentUser() as ParseUser?;
   }
 
-  // ---------- Polling ----------
   void _startPolling() {
     _stopPolling();
     _pollingTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
@@ -70,9 +69,7 @@ class AuthService extends ChangeNotifier {
       print('❌ Ошибка при опросе: $e');
     }
   }
-  // -----------------------------
 
-  // Регистрация
   Future<String?> registerWithEmail({
     required String email,
     required String password,
@@ -88,12 +85,12 @@ class AuthService extends ChangeNotifier {
       user.set('firstname', firstname);
       user.set('patronymic', patronymic);
       user.set('phone', phone);
-      user.set('role', 'student'); // роль по умолчанию
+      user.set('role', 'student');
 
       var response = await user.signUp();
       if (response.success) {
         _currentUser = response.result;
-        _startPolling(); // запускаем опрос после регистрации
+        _startPolling();
         notifyListeners();
         return null;
       } else {
@@ -106,7 +103,6 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Вход по email/паролю
   Future<String?> loginWithEmail(String email, String password) async {
     _setLoading(true);
     try {
@@ -114,7 +110,7 @@ class AuthService extends ChangeNotifier {
       var response = await user.login();
       if (response.success) {
         _currentUser = response.result;
-        _startPolling(); // запускаем опрос после входа
+        _startPolling();
         notifyListeners();
         return null;
       } else {
@@ -127,7 +123,6 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Вход через Google
   Future<String?> loginWithGoogle() async {
     _setLoading(true);
     try {
@@ -185,7 +180,7 @@ class AuthService extends ChangeNotifier {
           await currentUser.save();
         }
 
-        _startPolling(); // запускаем опрос после входа через Google
+        _startPolling();
         notifyListeners();
         return null;
       } else {
@@ -199,7 +194,6 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Загрузка фото в Yandex Object Storage (Minio)
   Future<String?> uploadProfilePhoto(XFile image) async {
     if (_currentUser == null) return 'Пользователь не авторизован';
     try {
@@ -243,9 +237,8 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Выход
   Future<void> signOut() async {
-    _stopPolling(); // останавливаем опрос перед выходом
+    _stopPolling();
     if (_currentUser != null) {
       await _currentUser!.logout();
       _currentUser = null;
@@ -257,8 +250,32 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  Future<String?> deleteAccount() async {
+    if (_currentUser == null) return 'Пользователь не авторизован';
+    _setLoading(true);
+    try {
+      final response = await _currentUser!.delete();
+      if (response.success) {
+        final GoogleSignIn googleSignIn = GoogleSignIn();
+        if (await googleSignIn.isSignedIn()) {
+          await googleSignIn.signOut();
+        }
+        _currentUser = null;
+        notifyListeners();
+        return null;
+      } else {
+        return response.error!.message;
+      }
+    } catch (e) {
+      return 'Ошибка удаления: $e';
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
+
   }
 }

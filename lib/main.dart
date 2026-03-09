@@ -10,6 +10,8 @@ import 'package:autoschool_btgp/student_home_page.dart';
 import 'package:autoschool_btgp/instructor_home_page.dart';
 import 'package:autoschool_btgp/admin_home_page.dart';
 
+import 'package:autoschool_btgp/theme_provider.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -34,17 +36,24 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthService()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp(
-        title: 'Автошкола',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(primarySwatch: Colors.blue),
-        initialRoute: '/',
-        routes: {
-          '/': (context) => AuthWrapper(),
-          '/login': (context) => LoginPage(),
-          '/register': (context) => RegisterPage(),
-          '/photo-upload': (context) => PhotoUploadPage(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child){
+          return MaterialApp(
+            title: 'Автошкола',
+            debugShowCheckedModeBanner: false,
+            theme: themeProvider.getThemeData(),
+            darkTheme: ThemeData.dark(),
+            themeMode: ThemeMode.system,
+            initialRoute: '/',
+            routes: {
+              '/': (context) => AuthWrapper(),
+              '/login': (context) => LoginPage(),
+              '/register': (context) => RegisterPage(),
+              '/photo-upload': (context) => PhotoUploadPage(),
+            },
+          );
         },
       ),
     );
