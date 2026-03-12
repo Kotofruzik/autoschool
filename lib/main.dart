@@ -1,3 +1,4 @@
+import 'package:autoschool_btgp/users_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'package:provider/provider.dart';
@@ -5,12 +6,9 @@ import 'package:autoschool_btgp/login_page.dart';
 import 'package:autoschool_btgp/register_page.dart';
 import 'package:autoschool_btgp/photo_upload_page.dart';
 import 'package:autoschool_btgp/auth_service.dart';
-
 import 'package:autoschool_btgp/student_home_page.dart';
 import 'package:autoschool_btgp/instructor_home_page.dart';
 import 'package:autoschool_btgp/admin_home_page.dart';
-
-import 'package:autoschool_btgp/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,24 +34,25 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthService()),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => UsersProvider()),
       ],
-      child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, child){
-          return MaterialApp(
-            title: 'Автошкола',
-            debugShowCheckedModeBanner: false,
-            theme: themeProvider.getThemeData(),
-            darkTheme: ThemeData.dark(),
-            themeMode: ThemeMode.system,
-            initialRoute: '/',
-            routes: {
-              '/': (context) => AuthWrapper(),
-              '/login': (context) => LoginPage(),
-              '/register': (context) => RegisterPage(),
-              '/photo-upload': (context) => PhotoUploadPage(),
-            },
-          );
+      child: MaterialApp(
+        title: 'Автошкола',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          scaffoldBackgroundColor: Colors.white,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.white,
+          ),
+        ),
+        initialRoute: '/',
+        routes: {
+          '/': (context) => AuthWrapper(),
+          '/login': (context) => LoginPage(),
+          '/register': (context) => RegisterPage(),
+          '/photo-upload': (context) => PhotoUploadPage(),
         },
       ),
     );
@@ -65,7 +64,7 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthService>(context);
 
-    if(auth.currentUser != null && auth.currentUser!.sessionToken != null) {
+    if (auth.currentUser != null && auth.currentUser!.sessionToken != null) {
       final role = auth.currentUser!.get('role') ?? 'student';
       switch (role) {
         case 'admin':
